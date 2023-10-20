@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="pt_BR">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Forum</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="/app-forum/">App Forum</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        </ul>
+      </div>
+      <div class="d-flex" role="search">
+      </div>
+    </div>
+  </nav>
+
+  <div class="alert" id="message" role="alert">
+  </div>
+  
+  <form>
+    <div class="container">
+
+      <div class="row">
+        <div class="col">
+          <label for="name" class="form-label"><b>Name:</b></label>
+          <input type="text" id="name" class="form-control" maxlength="100" aria-labelledby="nameBlock">
+          <div id="nameFeedback" class="none-feedback">
+          </div>
+          <div id="nameBlock" class="form-text">
+            Your name must be maximum 100 characters long.
+          </div>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col">
+          <label for="email" class="form-label"><b>E-mail:</b></label>
+          <input type="email" id="email" class="form-control" maxlength="100" aria-labelledby="emailBlock">
+          <div id="emailFeedback" class="none-feedback">
+          </div>
+          <div id="emailBlock" class="form-text">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label for="username" class="form-label"><b>Usename:</b></label>
+          <input type="text" id="username" class="form-control" maxlength="20" aria-labelledby="usernameBlock">
+          <div id="usernameFeedback" class="none-feedback">
+          </div>
+          <div id="usernameBlock" class="form-text">
+            Your username must be maximum 20 characters long.
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label for="password" class="form-label"><b>Password</b>:</label>
+          <input type="password" id="password" class="form-control" maxlenght="20" aria-labelledby="passwordBlock">
+          <div id="passwordFeedback" class="none-feedback">
+          </div>
+          <div id="passwordBlock" class="form-text">
+            Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.
+          </div>
+        </div>
+      </div>
+
+      <div class="row command-bar">
+        <div class="col">
+          <a href="/app-forum/" type="button" class="btn btn-default" id="cancelar">
+            <i class="bi bi-reply"></i>
+            Cancel
+          </a> 
+        </div>
+
+        <div class="col" style="text-align:right">
+          <button type="button" class="btn btn-primary" id="cadastrar">
+            <i class="bi bi-person-add"></i>
+            Register User
+            <span id="spinner" class="spinner-border spinner-border-sm" style="visibility:hidden" role="status" aria-hidden="true"></span>
+          </button> 
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <script type="text/javascript">
+
+    function ref(_idElem) {
+      return document.querySelector('#' + _idElem);
+    }
+
+    function fnValid(_id, msgValid = '', msgInvalid = '') {
+      
+      ref(_id + 'Feedback').classList.remove('none-feedback');
+      ref(_id + 'Feedback').classList.remove('valid-feedback');
+      ref(_id + 'Feedback').classList.remove('invalid-feedback');
+
+      ref(_id).classList.remove('is-valid');
+      ref(_id).classList.remove('is-invalid');
+      
+      if (ref(_id).value == '') {
+        ref(_id).classList.add('is-invalid');
+        ref(_id + 'Feedback').classList.add('invalid-feedback');
+        ref(_id + 'Feedback').innerHTML = msgInvalid;
+      }
+      else {
+        ref(_id).classList.add('is-valid');
+        ref(_id + 'Feedback').classList.add('valid-feedback');
+        ref(_id + 'Feedback').innerHTML = msgValid;
+
+        return true;
+      }
+
+      return false;
+    }
+
+    function validateEmail(_id, msgValid = '', msgInvalid = '') {
+      
+      const email = ref(_id).value;
+
+      const re = /\S+@\S+\.\S+/;
+      if (!re.test(email)) {
+        ref(_id).classList.add('is-invalid')
+        ref(_id + 'Feedback').classList.add('invalid-feedback');
+        ref(_id + 'Feedback').innerHTML = msgInvalid;
+      }
+      else {
+        ref(_id).classList.remove('is-invalid')
+        ref(_id + 'Feedback').classList.add('valid-feedback');
+        ref(_id + 'Feedback').innerHTML = msgValid;
+        return true;
+      }
+
+      return false;
+    }
+
+    ref('cadastrar').addEventListener("click", (event) => {
+      
+      ref('spinner').style.visibility = 'visible';
+
+      let ok = true;
+
+      ok = ok && fnValid('name', 'The name is correct.', 'The name was not filled in.');
+
+      ok = ok && fnValid('email', 'The email is correct.', 'The email was not filled in.');
+      ok = ok && validateEmail('email', 'The email is correct.', 'Not a valid email.');
+      
+      ok = ok && fnValid('username', 'The username is correct.', 'The username has not been filled in.');
+      ok = ok && fnValid('password', 'The password is correct.', 'The password was not entered.');
+
+      if (ok) {
+        let o = { 
+          username: ref('username').value, 
+          password: ref('password').value,
+          name:  ref('name').value,
+          email: ref('email').value 
+        };
+
+        fetch(new Request('/app-forum/api/user/save', {
+             method: 'POST',
+             headers: {
+                 'Accept': 'application/json',
+                 'Content-Type': 'application/json'
+             },
+             body: JSON.stringify(o)
+
+        })).then((response) => { return response.json(); }).then((obj) => {
+
+          if (obj.ok) {
+            fnMessage('success', obj.message);
+            ref('username').value = ''; 
+            ref('password').value = '';
+            ref('name').value = '';
+            ref('email').value = '';
+            ref('spinner').style.visibility = 'hidden';
+          }
+          else {
+            fnMessage('danger', obj.message);
+          }
+        });
+      }
+    }, false);
+
+
+    function fnMessage(_type, _msg) {
+      
+      setTimeout(() => {
+        ref('message').classList.remove('alert-success');
+        ref('message').classList.remove('alert-danger');
+        ref('message').innerHTML = '';
+      }, 4000);
+
+      ref('message').classList.add('alert-' + _type);
+      ref('message').innerHTML = _msg;
+    }
+  </script> 
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js" 
+          integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N" 
+          crossorigin="anonymous">
+  </script>
+</body>
+</html>
