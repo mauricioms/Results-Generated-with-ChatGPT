@@ -11,40 +11,31 @@
   </head>
   <body>
     <div id="messagem" class="alert alert-danger" role="alert" style="display: none" > Usuário Inválido. </div>
-    <div class="content-login">
-      <div id="logreg-forms">
+    <div class="content-login"><div id="logreg-forms">
         <form class="form-signin">
           <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">  Acesso ao <b>App Forum</b> </h5>
           <input type="text" name="username" id="username" class="form-control" placeholder="Usuário" required="required" autofocus="autofocus" /><br />
           <input type="password" name="password" id="password" class="form-control" placeholder="Senha" required="required" /><br />
           <button class="btn btn-success btn-block" type="button" id="cmd-signin"><i class="bi bi-door-open"></i> Log In <span id="spinner"  class="spinner-border spinner-border-sm" style="visibility: hidden"  role="status" aria-hidden="true"></span></button>
         </form>
-      </div>
-    </div>
+    </div></div>
     <center><a href="/app-forum/new-user.html" class="btn btn-success"><i class="bi bi-person-add"></i>New User </a></center>
     <script type="text/javascript">
       const commandSigned = document.querySelectorAll("button#cmd-signin")[0];
       const spinner = document.querySelectorAll("#spinner")[0];
       commandSigned.addEventListener( "click", (event) => {
-          commandSigned.disabled = true;
-          spinner.style.visibility = "visible";
-          let o = {
-            username: document.querySelectorAll("#username")[0].value,
-            password: document.querySelectorAll("#password")[0].value,
-          };
+          commandSigned.disabled = true; spinner.style.visibility = "visible";
+          let o = { username: document.querySelectorAll("#username")[0].value, password: document.querySelectorAll("#password")[0].value };
           fetch(new Request(document.location.pathname + "auth/login", { method: "POST", headers: { Accept: "application/json",  "Content-Type": "application/json" }, mode: "cors", cache: "default", body: JSON.stringify(o) })).then((obj) => {
             if (obj.status == 401) {
               document.querySelectorAll("div#messagem")[0].style.display = "block";
               setTimeout(() => {   document.querySelectorAll("div#messagem")[0].style.display = "none";  }, 2000);
-              commandSigned.disabled = false;
-              spinner.style.visibility = "hidden";
+              commandSigned.disabled = false; spinner.style.visibility = "hidden";
             } else {
-              if (document.location.hash == "") {
-                window.location.replace(document.location.pathname + "local/");
+              if (document.location.hash == "") { window.location.replace(document.location.pathname + "local/"); 
               } else {
                 window.location.replace( document.location.pathname + "local/" + document.location.hash );
-              }
-            }
+              } }
           });
         }, false);
     </script>

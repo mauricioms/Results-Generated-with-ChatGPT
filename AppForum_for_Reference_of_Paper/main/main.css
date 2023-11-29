@@ -7,23 +7,19 @@ div.content-login {
   border: solid 5px;
   border-radius: 40px 40px 40px 40px;
   padding: 20px;
-  background-color: #EEE;
+  background-color: #eee;
 }
-
 div.command-bar {
   background-color: #f8f9fa;
   padding: 15px;
   margin-top: 25px;
 }
-
 div.none-feedback {
   display: none;
 }
-
 .valid-feedback {
   display: block;
 }
-
 .invalid-feedback {
   display: block;
 }
