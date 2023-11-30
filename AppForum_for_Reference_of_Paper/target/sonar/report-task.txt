@@ -1,6 +1,0 @@
-projectKey=br.ufmg.dcc.aserg:AppForum_for_Reference_of_Paper
-serverUrl=http://localhost:9000
-serverVersion=9.9.3.79811
-dashboardUrl=http://localhost:9000/dashboard?id=br.ufmg.dcc.aserg%3AAppForum_for_Reference_of_Paper
-ceTaskId=AYwYDKtu8gLYoc0HdzOz
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AYwYDKtu8gLYoc0HdzOz
