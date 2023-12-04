@@ -8,7 +8,7 @@
     "config": "npx tsc --init --moduleResolution node --resolveJsonModule --target es2022 --noImplicitAny --sourceMap --lib dom,esnext --outDir dist",
     "dev": "tsc-watch --onSuccess \"node ./dist/main.js\"",
     "start": "tsc && node ./dist/main.js",
-    "lint": "npx eslint . --ext .ts --ignore-path .gitignore"
+    "lint": "npx eslint . --ext .ts --ignore-path .gitignore",
     "test": "echo 0"
   },
   "author": "",
