@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
+    "lint":"npx eslint . --ext .ts --ignore-path .gitignore"
   },
   "keywords": [],
   "author": "",
