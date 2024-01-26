@@ -5,9 +5,8 @@ import fileUpload from "express-fileupload";
 import session from "express-session";
 import http from "http";
 import passport from "passport";
-
-// import passport_google from "passport-google-oauth";
-
+import helmet from "helmet"
+import compression from "compression"
 const LocalStrategy = require('passport-local').Strategy
 
 import Strategy from 'passport-ldapauth';
@@ -87,7 +86,8 @@ export module appweb
     const app = express();
 
     app.use(timeout(amountTime));
-
+	app.use(helmet());
+	app.disable('x-powered-by')
     const hour = 1000 * 60 * 60 * 24;
     app.use(
         session({
@@ -101,7 +101,7 @@ export module appweb
         }));
 
     app.use(fileUpload());
-
+	app.use(compression())
     app.use(
         bodyParser.json({
           limit: limitBodyParser
