@@ -5,26 +5,18 @@ import fileUpload from "express-fileupload";
 import session from "express-session";
 import http from "http";
 import passport from "passport";
-import helmet from "helmet"
-import compression from "compression"
-const LocalStrategy = require('passport-local').Strategy
+import helmet from "helmet";
+import compression from "compression";
+const LocalStrategy = require("passport-local").Strategy;
 
-import Strategy from 'passport-ldapauth';
-import {database} from "./database";
+import { database } from "./database";
 
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
 declare var LdapStrategy: any;
 
-export module appweb
-{
-  /*
-  const GOOGLE_CLIENT_ID = "101449207194-crskn72gc2leis4e7kd4bqjh2f5a1ckt.apps.googleusercontent.com";
-  const GOOGLE_CLIENT_SECRET = "t2bO36uAY6A19yoRyvnOd6yH";
-  const GoogleStrategy = passport_google.OAuth2Strategy;
-  */
-
-  const baseURL: string = '/app-forum/';
+export module appweb {
+  const baseURL: string = "/app-forum/";
 
   const successRedirect: string = baseURL + "app-forum/";
   const failureRedirect: string = "";
@@ -37,128 +29,119 @@ export module appweb
   const pathPublic: string = "../public";
 
   export interface Server {
-
     server: http.Server;
     app: express.Express;
     auth: any;
 
-    listening(port: number|string): void;
+    listening(port: number | string): void;
   }
 
-  export class User
-  {
-    public name: string = 'Guest';
-    public username: string = 'guest';
-    public email: string = '';
+  export class User {
+    public name: string = "Guest";
+    public username: string = "guest";
+    public email: string = "";
     public roles: string[] = [];
-    public urlPhoto: string = '';
+    public urlPhoto: string = "";
 
-    constructor(user: any = {username: 'guest'})
-    {
-      if (user)
-      {
+    constructor(user: any = { username: "guest", roles: [] }) {
+      if (user) {
         this.name = user.name_user;
-        this.username = (user.username || 'guest');
-        this.email = (user.email || (this.username + '@dcc.ufmg.br'));
-        this.roles = (user.roles || []);
-        this.urlPhoto = user.urlPhoto
+        this.username = user.username;
+        this.email = user.email;
+        this.roles = user.roles;
+        this.urlPhoto = user.urlPhoto;
       }
     }
   }
 
-  class ServerLoad implements Server
-  {
+  class ServerLoad implements Server {
     constructor(
-        public server: http.Server,
-        public app: express.Express,
-        public auth: any) {}
+      public server: http.Server,
+      public app: express.Express,
+      public auth: any,
+    ) {}
 
-    public listening(port: number|string = 8080): void
-    {
-      this.server.listen(port, () => { console.log(`Server is running http://localhost:${port}...`); });
+    public listening(port: number | string = 8080): void {
+      this.server.listen(port, () => {
+        console.log(`Server is running http://localhost:${port}...`);
+      });
     }
   }
 
-  export const config: any = (db: database.DB,
-                              port: number|string = 8080,
-                              protocolo: string = "http",
-                              domain: string = "localhost"): appweb.Server => {
+  export const config: any = (
+    db: database.DB,
+    port: number | string = 8080,
+    protocolo: string = "http",
+    domain: string = "localhost",
+  ): appweb.Server => {
     const app = express();
 
     app.use(timeout(amountTime));
-	app.use(helmet());
-	app.disable('x-powered-by')
+    app.use(helmet());
+    app.disable("x-powered-by");
     const hour = 1000 * 60 * 60 * 24;
     app.use(
-        session({
-          secret: sessionSecret,
-          resave: false,
-          saveUninitialized: false,
-          cookie: {
-            expires: new Date(Date.now() + hour),
-            maxAge: hour
-          }
-        }));
+      session({
+        secret: sessionSecret,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          expires: new Date(Date.now() + hour),
+          maxAge: hour,
+        },
+      }),
+    );
 
     app.use(fileUpload());
-	app.use(compression())
+    app.use(compression());
     app.use(
-        bodyParser.json({
-          limit: limitBodyParser
-        }));
+      bodyParser.json({
+        limit: limitBodyParser,
+      }),
+    );
 
     app.use(
-        bodyParser.urlencoded({
-          limit: limitBodyParser,
-          extended: true
-        }));
+      bodyParser.urlencoded({
+        limit: limitBodyParser,
+        extended: true,
+      }),
+    );
 
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-      if (!req.timedout)
-      {
-        next();
-      }
-    });
+    app.use(
+      (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction,
+      ) => {
+        if (!req.timedout) {
+          next();
+        }
+      },
+    );
 
-    /*
     passport.use(
-        new GoogleStrategy(
-            {
-              clientID: GOOGLE_CLIENT_ID,
-              clientSecret: GOOGLE_CLIENT_SECRET,
-              callbackURL: protocolo + "://" + domain + ":" + port + "/auth/google/callback"
-            },
-            (token, tokenSecret, profile, done) => {
-              done(null, profile);
-            }));
-    */
+      new LocalStrategy((username: string, password: string, done: any) => {
+        const obj: { username: string; password: string } = {
+          username: username,
+          password: password,
+        };
 
-    passport.use(new LocalStrategy((username: string, password: string, done: any) => {
-      const obj: {username: string, password: string} = {username: username, password: password};
+        db.pullSQL(
+          "SELECT * FROM tb_user WHERE username = '" + obj.username + "';",
+          (result: any) => {
+            let user: any = result[0];
 
-      db.pullSQL("SELECT * FROM tb_user WHERE username = '" + obj.username + "';", (result: any) => {
-        let user: any = result[0];
+            if (!user && user.password != obj.password) {
+              return done(null, false);
+            }
 
-        if (!user)
-        {
-          return done(null, false);
-        }
+            delete user.password;
 
-        if (!user && (user.password == '' || user.password == null))
-        {
-          return done(null, false);
-        }
-
-        if (!user && (user.password != obj.password))
-        {
-          return done(null, false);
-        }
-
-        delete user.password;
-
-        return done(null, user);
-      });
-    }));
+            return done(null, user);
+          },
+        );
+      }),
+    );
 
     passport.serializeUser((user: any, done: any) => {
       done(null, user);
@@ -172,102 +155,104 @@ export module appweb
     app.use(passport.initialize());
     app.use(passport.session());
 
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-      if (/\/api\/.*/.test(req.path))
-      {
-        res.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate");
-        res.setHeader("Expires", "-1");
-        res.setHeader("Pragma", "no-cache");
-      }
-      else if (/\/authenticated/.test(req.path))
-      {
+    app.use(
+      (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction,
+      ) => {
+        if (/\/api\/.*/.test(req.path)) {
+          res.setHeader(
+            "Cache-Control",
+            "private, no-cache, no-store, must-revalidate",
+          );
+          res.setHeader("Expires", "-1");
+          res.setHeader("Pragma", "no-cache");
+        } else if (/\/authenticated/.test(req.path)) {
+          res.setHeader(
+            "Cache-Control",
+            "private, no-cache, no-store, must-revalidate",
+          );
+          res.setHeader("Expires", "-1");
+          res.setHeader("Pragma", "no-cache");
+        } else {
+          res.setHeader("Cache-Control", "public, max-age=31536000");
+        }
 
-        res.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate");
-        res.setHeader("Expires", "-1");
-        res.setHeader("Pragma", "no-cache");
-      }
-      else
-      {
-        res.setHeader("Cache-Control", "public, max-age=31536000");
-      }
+        res.setHeader("isAuthenticated", "" + req.isAuthenticated());
+        res.setHeader("x-powered-by", "ASERG - DCC - ICEx - UFMG - Brazil");
 
-      res.setHeader("isAuthenticated", '' + req.isAuthenticated());
-      res.setHeader("x-powered-by", "ASERG - DCC - ICEx - UFMG - Brazil");
+        next();
+      },
+    );
 
-      next();
-    });
-
-    app.post('/auth/test', (req: express.Request, res: express.Response) => {
+    app.post("/auth/test", (req: express.Request, res: express.Response) => {
       res.send(req.body);
     });
 
-    app.post('/auth/login', passport.authenticate(['local'], {session: true}), (req: express.Request, res: express.Response) => {
-      let user: appweb.User = new appweb.User(req.user);
+    app.post(
+      "/auth/login",
+      passport.authenticate(["local"], { session: true }),
+      (req: express.Request, res: express.Response) => {
+        let user: appweb.User = new appweb.User(req.user);
 
-      res.send({
-        user: user,
-        roles: [],
-        status: "connected",
-        authenticated: true,
-        message: "User is authenticate"
-      });
-    });
-
-    /*
-    app.get("/auth/google", passport.authenticate("google", {scope: ["email profile"]}));
-
-    app.get("/auth/google/callback", passport.authenticate("google", {failureRedirect}), (req: express.Request, res: express.Response) => {
-      // Authenticated successfully
-      res.redirect(successRedirect);
-    });
-    */
-
-    app.get("/authenticated", (req: express.Request, res: express.Response): void => {
-      if (req.isAuthenticated())
-      {
-        let u: appweb.User = new appweb.User(req.user);
-
-        db.pullSQL("SELECT * FROM tb_user WHERE username = '" + u.username + "';", (result: any) => {
-          let user: any = new appweb.User(result[0]);
-
-          delete user.password;
-
-          res.send({
-            user: user,
-            roles: user.roles,
-            status: "connected",
-            authenticated: true,
-            message: "User is authenticate",
-          });
-        });
-      }
-      else
-      {
-
-        res.status(403).send({
-          user: null,
+        res.send({
+          user: user,
           roles: [],
-          status: "disconnected",
-          authenticated: false,
-          message: 'Forbidden'
+          status: "connected",
+          authenticated: true,
+          message: "User is authenticate",
         });
-      }
-    });
+      },
+    );
+
+    app.get(
+      "/authenticated",
+      (req: express.Request, res: express.Response): void => {
+        if (req.isAuthenticated()) {
+          let u: appweb.User = new appweb.User(req.user);
+
+          db.pullSQL(
+            "SELECT * FROM tb_user WHERE username = '" + u.username + "';",
+            (result: any) => {
+              let user: any = new appweb.User(result[0]);
+
+              delete user.password;
+
+              res.send({
+                user: user,
+                roles: user.roles,
+                status: "connected",
+                authenticated: true,
+                message: "User is authenticate",
+              });
+            },
+          );
+        } else {
+          res.status(403).send({
+            user: null,
+            roles: [],
+            status: "disconnected",
+            authenticated: false,
+            message: "Forbidden",
+          });
+        }
+      },
+    );
 
     app.get("/logout", (req, res): void => {
       req.logOut(() => {});
       res.status(403).redirect(baseURL);
     });
 
-    const requiredAuthentication = (req: express.Request,
-                                    res: express.Response,
-                                    next: express.NextFunction): void => {
-      if (req.user)
-      {
+    const requiredAuthentication = (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction,
+    ): void => {
+      if (req.user) {
         next();
-      }
-      else
-      {
+      } else {
         res.status(403).redirect(baseURL);
       }
     };
