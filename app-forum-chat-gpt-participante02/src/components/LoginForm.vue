@@ -1,47 +1,55 @@
-<!-- src/components/LoginForm.vue -->
 <template>
-    <div class="login-page">
+  <div class="login-page">
     <div class="login-container">
       <h1>Acesso ao <strong>App Forum</strong></h1>
       <form @submit.prevent="submitForm">
         <input type="text" v-model="email" placeholder="Usuário" required />
-        <input type="password" v-model="password" placeholder="Senha" required />
+        <input
+          type="password"
+          v-model="password"
+          placeholder="Senha"
+          required
+        />
         <button type="submit" class="btn btn-signin">Entrar</button>
       </form>
     </div>
-    <button type="button" @click.prevent="goToSignUp" class="btn btn-signup">Novo Usuário</button>
+    <button type="button" @click.prevent="goToSignUp" class="btn btn-signup">
+      Novo Usuário
+    </button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios';
-import { userEmail } from '@/store/auth';
-
+import { defineComponent } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+import { userEmail } from "@/store/auth";
 
 export default defineComponent({
   data() {
     return {
-      email: '',
-      password: ''
-    }
+      email: "",
+      password: "",
+    };
   },
-methods: {
-  async submitForm() {
-    try {
-      await axios.post('http://localhost:3030/api/signin', { email: this.email, password: this.password });
-      userEmail.value = this.email;
-      this.$router.push('/home');
-    } catch (error) {
-      console.error('Error signing in:', error);
-    }
+  methods: {
+    async submitForm() {
+      try {
+        await axios.post("http://localhost:3030/api/signin", {
+          email: this.email,
+          password: this.password,
+        });
+        userEmail.value = this.email;
+        this.$router.push("/home");
+      } catch (error) {
+        console.error("Error signing in:", error);
+      }
+    },
+    goToSignUp() {
+      this.$router.push("/signup");
+    },
   },
-  goToSignUp() {
-    this.$router.push('/signup');
-  }
-}
-})
+});
 </script>
 
 <style scoped>

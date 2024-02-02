@@ -1,10 +1,13 @@
-
-<!-- src/components/SignUpForm.vue -->
 <template>
   <div class="register-page">
     <h1>Novo Usuário</h1>
     <form @submit.prevent="submitForm" class="register-form">
-      <input type="text" v-model="email" placeholder="Usuário (e-mail)" required />
+      <input
+        type="text"
+        v-model="email"
+        placeholder="Usuário (e-mail)"
+        required
+      />
       <input type="password" v-model="password" placeholder="Senha" required />
       <button type="submit" class="btn btn-signup">Cadastrar</button>
     </form>
@@ -12,26 +15,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import axios from 'axios';
+import { defineComponent } from "vue";
+import axios from "axios";
 
 export default defineComponent({
   data() {
     return {
-      email: '',
-      password: ''
+      email: "",
+      password: "",
     };
   },
   methods: {
     async submitForm() {
       try {
-        await axios.post('http://localhost:3030/api/register', { email: this.email, password: this.password });
-        this.$router.push('/');
+        await axios.post("http://localhost:3030/api/register", {
+          email: this.email,
+          password: this.password,
+        });
+        this.$router.push("/");
       } catch (error) {
-        console.error('Error signing up:', error);
+        console.error("Error signing up:", error);
       }
-    }
-  }
+    },
+  },
 });
 </script>
 

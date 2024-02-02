@@ -1,29 +1,27 @@
-<!-- eslint-disable vue/no-deprecated-slot-attribute -->
 <template>
-    <div class="top-bar">
-      <div class="top-bar-left">
+  <div class="top-bar">
+    <div class="top-bar-left">
       <div class="app-forum">App Forum</div>
-      <button class="new-question" @click="openForm=true">
+      <button class="new-question" @click="openForm = true">
         <i class="fas fa-plus"></i>
         Nova pergunta
       </button>
-      </div>
-      <router-link to="/profile">
-        <i class="fas fa-user"></i>
-        Perfil
-      </router-link>
-      <button @click="logout" class="logout">
-        Logout
-      </button>
     </div>
+    <router-link to="/profile">
+      <i class="fas fa-user"></i>
+      Perfil
+    </router-link>
+    <button @click="logout" class="logout">Logout</button>
+  </div>
 
-     <!-- New Question Form Dialog -->
-<modal v-if="openForm" @close="openForm = false">
-    // eslint-disable-next-line vue/no-deprecated-slot-attribute
+  <modal v-if="openForm" @close="openForm = false">
     <h3 slot="header">New Question</h3>
     <div slot="body">
       <input type="text" v-model="newQuestion.assunto" placeholder="Assunto" />
-      <textarea v-model="newQuestion.conteudo" placeholder="Conteúdo"></textarea>
+      <textarea
+        v-model="newQuestion.conteudo"
+        placeholder="Conteúdo"
+      ></textarea>
       <button @click="submitNewQuestion">Enviar</button>
       <button @click="openForm = false">Cancelar</button>
     </div>
@@ -65,44 +63,45 @@
 
 <!-- src/components/HomePage.vue -->
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from 'vue';
-import { userEmail } from '@/store/auth';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { defineComponent, onMounted, reactive, ref } from "vue";
+import { userEmail } from "@/store/auth";
+import { useRouter } from "vue-router";
+import axios from "axios";
 
 export default defineComponent({
-  name: 'HomePage',
+  name: "HomePage",
   setup() {
     const router = useRouter();
     const items = ref([
       {
         id: 1,
-        assunto: 'Assunto 1',
-        usuario: 'Usuario 1',
-        data: '2023-05-01 10:30:00',
+        assunto: "Assunto 1",
+        usuario: "Usuario 1",
+        data: "2023-05-01 10:30:00",
       },
       {
         id: 2,
-        assunto: 'Assunto 2',
-        usuario: 'Usuario 2',
-        data: '2023-05-02 11:30:00',
+        assunto: "Assunto 2",
+        usuario: "Usuario 2",
+        data: "2023-05-02 11:30:00",
       },
       // Add more items if needed
     ]);
     const openForm = ref(false);
     const newQuestion = reactive({
-      id: Math.random(),  // change this to a more suitable ID generation
-      assunto: '',
-      usuario: userEmail,  // fetch logged-in user email
+      id: Math.random(), // change this to a more suitable ID generation
+      assunto: "",
+      usuario: userEmail, // fetch logged-in user email
       data: new Date().toISOString(),
-      conteudo: ''
+      conteudo: "",
     });
 
     const submitNewQuestion = () => {
-      axios.post('http://localhost:3030/api/posts', newQuestion)
+      axios
+        .post("http://localhost:3030/api/posts", newQuestion)
         .then(() => {
-          newQuestion.assunto = '';
-          newQuestion.conteudo = '';
+          newQuestion.assunto = "";
+          newQuestion.conteudo = "";
           openForm.value = false;
           fetchPosts(); // Refresh posts after adding new one
         })
@@ -110,7 +109,8 @@ export default defineComponent({
     };
 
     const fetchPosts = () => {
-      axios.get('http://localhost:3030/api/posts')
+      axios
+        .get("http://localhost:3030/api/posts")
         .then((response) => {
           items.value = response.data; // Assuming your table data is stored in 'items' ref
         })
@@ -127,31 +127,32 @@ export default defineComponent({
       userEmail,
       items,
       logout() {
-  localStorage.removeItem('email');
-  router.push('/login');
+        localStorage.removeItem("email");
+        router.push("/login");
       },
       viewItem(itemId: number) {
         console.log(`View item with ID: ${itemId}`);
-        router.push({ name: 'PostDetails', params: { postId: itemId } });
+        router.push({ name: "PostDetails", params: { postId: itemId } });
         // Perform the view item action, e.g., navigate to a different page, display a modal, etc.
       },
       removeItem(itemId: number) {
         console.log(`Remove item with ID: ${itemId}`);
-        axios.delete(`http://localhost:3030/api/posts/${itemId}`)
+        axios
+          .delete(`http://localhost:3030/api/posts/${itemId}`)
           .then(() => {
             fetchPosts(); // Refresh posts after deletion
           })
           .catch((error) => console.error(error));
       },
       createNewQuestion() {
-      const newItem = {
-        id: items.value.length + 1,
-        assunto: 'Random Assunto ' + Math.random().toString(36).substring(7),
-        usuario: 'Random Usuario ' + Math.random().toString(36).substring(7),
-        data: new Date().toISOString().slice(0, 10),
-      };
-      items.value.push(newItem);
-    },
+        const newItem = {
+          id: items.value.length + 1,
+          assunto: "Random Assunto " + Math.random().toString(36).substring(7),
+          usuario: "Random Usuario " + Math.random().toString(36).substring(7),
+          data: new Date().toISOString().slice(0, 10),
+        };
+        items.value.push(newItem);
+      },
     };
   },
 });
@@ -210,17 +211,17 @@ th {
 .trash-bin-icon {
   /* You can use any icon library you prefer, e.g., Font Awesome, Material Icons, etc. */
   /* Here's an example using Font Awesome: */
-  font-family: 'Font Awesome 5 Free';
+  font-family: "Font Awesome 5 Free";
   font-weight: 900;
   margin-right: 5px;
 }
 
 .binoculars-icon::before {
-  content: '\f1e5'; /* Font Awesome code for the binoculars icon */
+  content: "\f1e5"; /* Font Awesome code for the binoculars icon */
 }
 
 .trash-bin-icon::before {
-  content: '\f2ed'; /* Font Awesome code for the trash bin icon */
+  content: "\f2ed"; /* Font Awesome code for the trash bin icon */
 }
 
 .top-bar {
@@ -270,5 +271,4 @@ th {
   font-size: 16px;
   padding: 8px 16px;
 }
-
 </style>
