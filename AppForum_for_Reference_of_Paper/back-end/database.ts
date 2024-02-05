@@ -1,81 +1,65 @@
-import sqlite3 from 'sqlite3';
+import sqlite3 from 'sqlite3'
 
-export module database
-{
+export module database {
   export interface DB {
-    connect(): void;
-    disconnect(): void;
-    pullSQL(sql: string, callback: any, callerror?: any): void;
-    pushSQL(sql: string, values: any[], callback: any, callerror?: any): void;
+    connect(): void
+    disconnect(): void
+    pullSQL(sql: string, callback: (_r: unknown[]) => void, callerror?: (err: Error) => void): void
+    pushSQL(sql: string, values: unknown[], callback: unknown, callerror?: (err: Error) => void): void
   }
 
-  export namespace sqlite3
-  {
+  export namespace SQLite {
+    export class SQLite implements DB {
+      constructor(private filepathDB: string = '') {}
 
-  export class SQLite implements DB
-  {
+      public connect(): void {}
 
-    private pool: any;
+      public disconnect(): void {}
 
-    constructor(private filepathDB: string = '')
-    {
-    }
+      public pullSQL(sql: string, callback: (_r: unknown[]) => void, callerror: (err: Error) => void): void {
+        if (this.filepathDB != null) {
+          const db: sqlite3.Database = new sqlite3.Database(this.filepathDB)
 
-    public connect(): void
-    {
-    }
+          db.serialize((): void => {
+            db.all(sql, (err: Error, rows: unknown[]) => {
+              if (err) {
+                callerror(err)
+              } else if (callback) {
+                callback(rows)
+              }
+            })
+          })
 
-    public disconnect(): void
-    {
-    }
+          db.close()
+        }
+      }
 
-    public pullSQL(sql: string, callback: any, callerror: any): void
-    {
+      public pushSQL(
+        sql: string,
+        values: unknown[] = [],
+        callback: (_r: boolean) => void,
+        callerror: (err: Error) => void
+      ): void {
+        if (this.filepathDB != null) {
+          const db: sqlite3.Database = new sqlite3.Database(this.filepathDB)
 
-      if (this.filepathDB != null)
-      {
-        const sqlite3 = require('sqlite3').verbose();
-        const db = new sqlite3.Database(this.filepathDB);
+          db.serialize(() => {
+            const stmt: sqlite3.Statement = db.prepare(sql)
 
-        db.serialize(async () => {
-          db.all(sql, (error: any, rows: any) => {
-            if (callback)
-            {
-              callback(rows);
-            }
-          });
-        });
+            stmt.run(values, (err: Error) => {
+              if (callerror) {
+                callerror(err)
+              }
+            })
 
-        db.close();
+            stmt.finalize()
+
+            callback(true)
+          })
+
+          db.close()
+        }
       }
     }
-
-    public pushSQL(sql: string, values: any[] = [], callback: any, callerror: any): void
-    {
-
-      if (this.filepathDB != null)
-      {
-        const sqlite3 = require('sqlite3').verbose();
-        const db = new sqlite3.Database(this.filepathDB);
-
-        db.serialize(() => {
-          const stmt = db.prepare(sql);
-
-          stmt.run(values, (err: any) => {
-            if (callerror)
-            {
-              callerror(err);
-            }
-          });
-
-          stmt.finalize();
-
-          callback(true);
-        });
-
-        db.close();
-      }
-    }
-  }
   }
 }

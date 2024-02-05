@@ -1,15 +1,18 @@
 /* eslint-env node */
 module.exports = {
   extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-type-checked",
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-type-checked'
   ],
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
-    tsconfigRootDir: __dirname,
+    tsconfigRootDir: __dirname
   },
-  plugins: ["@typescript-eslint"],
-  root: true,
-};
+  rules: {
+    '@typescript-eslint/no-namespace': 'off'
+  },
+  plugins: ['@typescript-eslint'],
+  root: true
+}

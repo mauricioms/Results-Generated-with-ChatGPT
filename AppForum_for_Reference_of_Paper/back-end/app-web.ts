@@ -7,45 +7,48 @@ import http from 'http'
 import passport from 'passport'
 import helmet from 'helmet'
 import compression from 'compression'
-const LocalStrategy = require('passport-local').Strategy
+import { Strategy as LocalStrategy } from 'passport-local'
 
 import { database } from './database'
 
-const bcrypt = require('bcryptjs')
-
-declare var LdapStrategy: any
-
 export module appweb {
   const baseURL: string = '/app-forum/'
-
-  const successRedirect: string = baseURL + 'app-forum/'
-  const failureRedirect: string = ''
   const sessionSecret: string = 't2023ee2bO36uAY6A19yoRyvnOd6yH'
   const amountTime: string = '60m'
   const limitBodyParser: string = '50000mb'
-
   const pathFrontEnd: string = '../main'
   const pathManager: string = '../front-end/dist'
   const pathPublic: string = '../public'
 
+  export type RequiredAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => void
+
   export interface Server {
     server: http.Server
     app: express.Express
-    auth: any
+    auth: appweb.RequiredAuth
 
     listening(port: number | string): void
   }
 
   export class User {
+    public password?: string
     public name: string = 'Guest'
     public username: string = 'guest'
     public email: string = ''
     public roles: string[] = []
     public urlPhoto: string = ''
 
-    constructor(user: any = { username: 'guest', roles: [] }) {
+    constructor(
+      user: { username: string; name: string; email: string; roles: string[]; urlPhoto: string } | undefined = {
+        name: '',
+        urlPhoto: '',
+        email: '',
+        username: 'guest',
+        roles: []
+      }
+    ) {
       if (user) {
-        this.name = user.name_user
+        this.name = user.name
         this.username = user.username
         this.email = user.email
         this.roles = user.roles
@@ -58,7 +61,7 @@ export module appweb {
     constructor(
       public server: http.Server,
       public app: express.Express,
-      public auth: any
+      public auth: appweb.RequiredAuth
     ) {}
 
     public listening(port: number | string = 8080): void {
@@ -68,12 +71,7 @@ export module appweb {
     }
   }
 
-  export const config: any = (
-    db: database.DB,
-    port: number | string = 8080,
-    protocolo: string = 'http',
-    domain: string = 'localhost'
-  ): appweb.Server => {
+  export function config(db: database.DB): appweb.Server {
     const app = express()
 
     app.use(timeout(amountTime))
@@ -113,38 +111,41 @@ export module appweb {
       }
     })
 
-    passport.use(
-      new LocalStrategy((username: string, password: string, done: any) => {
+    const _local: LocalStrategy = new LocalStrategy(
+      (username: string, password: string, done: (a: null, _u: { password: string } | boolean) => void) => {
         if (username != null && username.length > 0) {
           const obj: { username: string; password: string } = {
             username: username,
             password: password
           }
 
-          db.pullSQL("SELECT * FROM tb_user WHERE username = '" + obj.username + "';", (result: any) => {
-            let user: any = result[0]
+          db.pullSQL("SELECT * FROM tb_user WHERE username = '" + obj.username + "';", (result: unknown[]): void => {
+            const user: { username: string; password: string } = result[0] as { username: string; password: string }
 
-            if (!user && user.password != obj.password) {
+            if (!user || user.password != obj.password) {
               return done(null, false)
             }
 
-            delete user.password
-
+            user.password = ''
             return done(null, user)
           })
         } else {
           return done(null, false)
         }
-      })
+      }
     )
 
-    passport.serializeUser((user: any, done: any) => {
-      done(null, user)
+    passport.use(_local)
+
+    passport.serializeUser((_user: Express.User, done: (err: Error | null, id?: unknown) => void): void => {
+      done(null, (_user as { username: string }).username)
     })
 
-    passport.deserializeUser((user: any, done: any) => {
-      done(null, user)
-    })
+    passport.deserializeUser(
+      (_username: string, done: (err: Error | null, user: { username: string }) => void): void => {
+        done(null, { username: _username })
+      }
+    )
 
     // use passport session
     app.use(passport.initialize())
@@ -173,28 +174,34 @@ export module appweb {
       res.send(req.body)
     })
 
-    app.post(
-      '/auth/login',
-      passport.authenticate(['local'], { session: true }),
-      (req: express.Request, res: express.Response) => {
-        let user: appweb.User = new appweb.User(req.user)
+    const passportAuth: express.RequestHandler = passport.authenticate(['local'], {
+      session: true
+    })
 
-        res.send({
-          user: user,
-          roles: [],
-          status: 'connected',
-          authenticated: true,
-          message: 'User is authenticate'
-        })
-      }
-    )
+    app.post('/auth/login', passportAuth, (req: express.Request, res: express.Response) => {
+      const user: appweb.User = new appweb.User(
+        req.user as { username: string; name: string; email: string; roles: string[]; urlPhoto: string }
+      )
+
+      res.send({
+        user: user,
+        roles: [],
+        status: 'connected',
+        authenticated: true,
+        message: 'User is authenticate'
+      })
+    })
 
     app.get('/authenticated', (req: express.Request, res: express.Response): void => {
       if (req.isAuthenticated()) {
-        let u: appweb.User = new appweb.User(req.user)
+        const u: appweb.User = new appweb.User(
+          req.user as { username: string; name: string; email: string; roles: string[]; urlPhoto: string }
+        )
 
-        db.pullSQL("SELECT * FROM tb_user WHERE username = '" + u.username + "';", (result: any) => {
-          let user: any = new appweb.User(result[0])
+        db.pullSQL("SELECT * FROM tb_user WHERE username = '" + u.username + "';", (result: unknown[]) => {
+          const user: appweb.User = new appweb.User(
+            result[0] as { username: string; name: string; email: string; roles: string[]; urlPhoto: string }
+          )
 
           delete user.password
 
@@ -222,7 +229,11 @@ export module appweb {
       res.status(403).redirect(baseURL)
     })
 
-    const requiredAuthentication = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    const requiredAuthentication: RequiredAuth = (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction
+    ): void => {
       if (req.user) {
         next()
       } else {
