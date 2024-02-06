@@ -176,7 +176,7 @@ export module appweb {
 
     const passportAuth: express.RequestHandler = passport.authenticate(['local'], {
       session: true
-    })
+    }) as express.RequestHandler
 
     app.post('/auth/login', passportAuth, (req: express.Request, res: express.Response) => {
       const user: appweb.User = new appweb.User(
