@@ -42,6 +42,9 @@ async function deletarPergunta(idPergunta: number): Promise<any> {
 
 <template>
   <table class="table">
+    <caption>
+      Perguntas cadastradas
+    </caption>
     <thead>
       <tr>
         <th scope="col">#</th>

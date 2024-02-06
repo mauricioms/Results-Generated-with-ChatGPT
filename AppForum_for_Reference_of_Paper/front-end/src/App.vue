@@ -79,8 +79,5 @@ const currentView = computed(() => {
       </div>
     </div>
   </nav>
-
   <component :is="currentView" />
 </template>
-
-<style scoped></style>
