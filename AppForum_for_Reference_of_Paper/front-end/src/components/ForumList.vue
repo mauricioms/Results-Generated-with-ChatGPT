@@ -18,7 +18,7 @@ function formatDateTime(_dateTime: any) {
   return moment(_dateTime, 'YYYY-MM-DD hh:mm:ss').format('DD/MM/YYYY HH:mm')
 }
 
-function deletarPergunta(idPergunta: number) {
+async function deletarPergunta(idPergunta: number): Promise<any> {
   const deletarPergunta: any = async (_id: number) => {
     const myHeaders: Headers = new Headers()
     myHeaders.append('Content-Type', 'application/json')
@@ -31,9 +31,10 @@ function deletarPergunta(idPergunta: number) {
     const myRequest: Request = new Request('/app-forum/api/pergunta/' + _id + '/deletar', myInit)
     const response = await fetch(myRequest)
     const data = await response.json()
+    return data
   }
 
-  deletarPergunta(idPergunta).then((_data: any) => {
+  deletarPergunta(idPergunta).then(() => {
     props.callMethod().then(() => {})
   })
 }
@@ -51,23 +52,17 @@ function deletarPergunta(idPergunta: number) {
       </tr>
     </thead>
     <tbody class="table-group-divider">
-      <tr v-for="pergunta in perguntas">
+      <tr v-for="pergunta in perguntas" :key="pergunta.id">
         <th scope="row">{{ pergunta.id }}</th>
         <td>{{ pergunta.subject }}</td>
         <td>{{ pergunta.user.name }}</td>
         <td>{{ formatDateTime(pergunta.dtregisted) }}</td>
-
         <td>
-          <button
-            type="button"
-            class="btn btn-primary"
-            @click="$router.push('/pergunta/' + pergunta.id)"
-          >
+          <button type="button" class="btn btn-primary" @click="$router.push('/pergunta/' + pergunta.id)">
             <i class="bi bi-binoculars"></i>
             View
           </button>
         </td>
-
         <td>
           <button type="button" class="btn btn-danger" @click="deletarPergunta(pergunta.id)">
             <i class="bi bi-trash"></i>
@@ -78,5 +73,3 @@ function deletarPergunta(idPergunta: number) {
     </tbody>
   </table>
 </template>
-
-<style scoped></style>
