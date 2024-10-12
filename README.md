@@ -1,4 +1,4 @@
-# End-to-End Software Construction using ChatGPT: An Experience Report
+# Results Generated in Exploratory Study
 
 Results were generated using ChatGPT Plus for the paper End-to-End Software Construction using ChatGPT: An Experience Report.
 
